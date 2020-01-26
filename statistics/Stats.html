@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+
+<head>
+	<!--
+	<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+	-->
+	<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+	<link href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap" rel="stylesheet">
+</head>
+
+<style>
+	:invalid {
+		border: solid 2px rgb(199, 34, 19);
+	}
+
+	.text {
+		font-family: 'Open Sans', sans-serif;
+		color: rgb(25, 51, 76);
+	}
+
+	.graph {
+		width: 1000px;
+		height: 400px;
+		border: 3px solid black;
+		border-left: 10px solid rgb(67, 199, 240);
+		margin: 10px;
+	}
+
+	.graph_caption {
+		font-family: 'Open Sans', sans-serif;
+		color: rgb(25, 51, 76);
+		;
+		margin-left: 50px;
+		padding-bottom: 50px;
+	}
+
+	.indicator {
+		width: 600px;
+		height: 400px;
+		border: 3px solid black;
+		border-left: 10px solid rgb(67, 199, 240);
+		margin: 10px;
+	}
+
+</style>
+
+<body style="margin-left: 20px; margin-right: 20px; background: rgb(220, 220, 220)">
+	<div style="display: flex; margin-bottom: -25px;">
+		<img src="https://www.ti.com/content/dam/ticom/images/identities/ti-brand/ti-stk-2c-pos-rgb-logo.png"
+			style="height: 100px;margin-top: -15px;"></img>
+		<h1 style="align-content: center">Statisitcs Visualization</h1>
+	</div>
+	<hr style="border: rgb(0, 77, 165) solid 2px;"></hr>
+
+	<div style="zoom:1.2;">
+		<text style="margin-left:10px;">IP address of the target: </text>
+		<input id="ipaddr" autofocus required required pattern="^([0-9]{1,3}\.){3}[0-9]{1,3}$"
+			placeholder="xxx.xxx.xxx.xxx" oninvalid="this.setCustomValidity('Invalid IP address!')"
+			oninput="this.setCustomValidity('')"></input>
+		<text style="margin-left:10px;">Port number: </text>
+		<input id="port" value="8090" style="width:70px;"></input>
+		<button style="margin-left: 10px;" onclick="connect()">Connect</button>
+	</div>
+	<div style="margin: 5px;">
+		<text id="conn_status" style="margin: 30px; color: rgb(128, 128, 128);">Waiting for connection...</text>
+		<text id="debug" style="color: brown">Debug messages here.</text>
+	</div>
+
+	<hr style="border: rgb(0, 77, 165) solid 2px;"></hr>
+	<div style="display: flex; padding: 3px; margin: 3px;">
+			<text>Click to toggle filters: </text>
+			<text id="sample_toggle" style="cursor: pointer; padding: 2px; margin-left: 10px; display: none;" target="dummy" onclick="toggle_item(this)">Sample</text>
+			<div id="toggles" style="display: flex;"></div>
+	</div>	
+	<div id="stats_area" style="border: rgb(0, 77, 165) dashed 2px; min-height: 300px;"></div>
+</body>
+<script>
+
+	var debug = document.getElementById("debug")
+	var bargraphs = {};
+	var indicators = {};
+	var connection;
+	var unitTestStop = 0;
+
+	function d(msg) {
+		debug.innerHTML = msg
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	function barGraphCreate(id, caption, traces, num_samples, maxval) {
+		var graph = new Object();
+		graph.id = id;
+		graph.num_samples = num_samples;
+		graph.maxval = maxval;
+		graph.cnt = 0
+
+		parent = document.getElementById('stats_area');
+		div = document.createElement("div");
+		div.setAttribute('id', id);
+		div.className = "graph";
+		parent.appendChild(div);
+		graph.div = div;
+
+		data = traces;
+
+		layout = {
+			plot_bgcolor: "#F8F8F8",
+			title: {
+				text: caption,
+				font: {
+					family: 'Open Sans, sans-serif',
+					color: '#7f7f7f',
+				},
+				xref: 'paper',
+				x: 0.05,
+			},
+			xaxis: {
+				range: [0, graph.num_samples],
+				title: {
+					text: 'Time',
+					font: {
+						family: 'Open Sans, sans-serif',
+						color: '#7f7f7f',
+					},
+				},
+			},
+			yaxis: {
+				range: [0, graph.maxval],
+				title: {
+					text: caption,
+					font: {
+						family: 'Open Sans, sans-serif',
+						color: '#7f7f7f',
+					},
+				},
+			},
+		};
+
+
+		Plotly.plot(graph.id, data, layout);
+		return graph;
+	}
+
+	function barGraphUpdate(graph, data) {
+		var indices = [];
+		for (i = 0; i < data.length; i++) {
+			indices.push(i);
+		}
+		Plotly.extendTraces(graph.id, { y: data }, indices);
+		graph.cnt++;
+
+		if (graph.cnt > graph.num_samples) {
+			Plotly.relayout(graph.id, {
+				xaxis: {
+					range: [graph.cnt - graph.num_samples, graph.cnt]
+				}
+			});
+		}
+	}
+
+	function handle_bargraph(values, id, name, label, num_samples, maxval) {
+		var traces = [];
+		var data = [];
+		var x;
+
+		if (bargraphs[id] == null) {
+			for (i = 0; i < parseInt(values[1]); i++) {
+				type = values[2 + i * 2];
+				console.log("Adding bargraph trace for " + id + ":" + type);
+				traces.push({
+					y: [0],
+					name: type,
+					type: 'line',
+				});
+			}
+			bargraphs[id] = barGraphCreate(id, label, traces, num_samples, maxval);
+			add_toggle_button(id, name);
+		} else {
+			for (i = 0; i < parseInt(values[1]); i++) {
+				curVal = values[3 + i * 2];
+				data.push([parseInt(curVal),]);
+			}
+			barGraphUpdate(bargraphs[id], data);
+		}
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	function indicatorCreate(id, name, maxval) {
+		var indicator = new Object();
+		indicator.id = id;
+		indicator.maxval = maxval;
+
+		parent = document.getElementById('stats_area');
+		div = document.createElement("div");
+		div.setAttribute('id', id);
+		div.className = "indicator";
+		parent.appendChild(div);
+		indicator.div = div;
+		indicator.data = [
+			{
+				domain: { x: [0, 1], y: [0, 1] },
+				value: 45,
+				title: { text: name },
+				type: "indicator",
+				mode: "gauge+number",
+				gauge: { axis: { range: [0, maxval] } }
+			}
+		];
+		indicator.layout = { width: 600, height: 400 };
+		Plotly.newPlot(indicator.id, indicator.data, indicator.layout);
+		return indicator;
+	}
+
+	function indicatorUpdate(indicator, value) {
+		indicator.data[0].value = value;
+		Plotly.newPlot(indicator.id, indicator.data, indicator.layout);
+	}
+
+	function handle_indicator(values, id, name, label, maxval) {
+		if (indicators[id] == null) {
+			console.log("Adding indicator for " + name);
+			indicators[id] = indicatorCreate(id, label, maxval);
+			add_toggle_button(id, name);
+		} else {
+			indicatorUpdate(indicators[id], parseInt(values[1]));
+		}
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	function reset() {
+		if (connection != null) {
+			connection.close();
+		}
+
+		bargraphs = {};
+		indicators = {};
+
+		document.getElementById('stats_area').innerHTML = "";
+		document.getElementById('toggles').innerHTML = "";
+		document.getElementById('conn_status').innerText = "Waiting for connection...";
+	}
+
+	function handle_message(event) {
+		//console.log("Received data: " + event.data);
+		values = event.data.split(" ");
+		tag = String(values[0]);
+
+		switch (tag) {
+			case "WS-cpuload:":
+				handle_bargraph(values, 'cpuload', "CPU load", "CPUload (%)", 100, 100);
+				break;
+			case "WS-ddrbw:":
+				handle_bargraph(values, 'ddrbw', "DDR Bandwidth", "DDR bandwidth (MBps)", 100, 10000);
+				break;
+			case "WS-cluster-fps:":
+				handle_indicator(values, 'cluster-fps', "Cluster FPS", "Cluster FPS", 60)
+				break;
+			default:
+				console.log("Unsupported tag " + tag);
+		}
+	}
+
+	function connect() {
+
+		unitTestStop = 1;
+		reset();
+
+		ipaddr = document.getElementById('ipaddr').value
+		port = document.getElementById('port').value
+		connection = new WebSocket('ws://' + ipaddr + ':' + port);
+
+		connection.onopen = function () {
+			document.getElementById('conn_status').innerText = "Connected to " + ipaddr;
+		};
+
+		connection.onmessage = handle_message;
+	}
+
+	function add_toggle_button(id, text) {
+		parent = document.getElementById('toggles');
+		node = document.getElementById('sample_toggle');
+		newtoggle = node.cloneNode(true);
+
+		delete newtoggle.id;
+		newtoggle.innerHTML = text;
+		newtoggle.setAttribute('target', id);
+		newtoggle.style.display = "block";
+		newtoggle.style.backgroundColor = "#3273dc4d";
+		parent.appendChild(newtoggle);
+	}
+
+	function toggle_item(element) {
+		id = element.getAttribute('target');
+		console.log("Clicked on " + id);
+		item = document.getElementById(id);
+		if (item == null) {
+			return
+		}
+		if (item.style.display == "none") {
+			item.style.display = "block";
+			element.style.backgroundColor = "#3273dc4d";
+		} else {
+			item.style.display = "none";
+			element.style.backgroundColor = "#f2f2f2";
+		}
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	function sleep(ms) {
+		return new Promise(resolve => setTimeout(resolve, ms));
+	}
+
+	function testMsg(msg) {
+		handle_message({data : msg});
+	}
+	function unitTest() {
+
+		function rand(min, max) {
+			diff = max - min
+			return Math.floor((Math.random() * diff) + min);
+		}
+
+		function test_random_data() {
+
+			if (unitTestStop == 1)
+				return
+			testMsg("WS-cpuload: 4 R5F " + rand(33, 62) + " C6x " + rand(52, 59) + " A72 " + rand(9, 42) + " GPU " + rand(73, 91));
+			testMsg("WS-ddrbw: 4 Read_avg " + rand(1800, 2200) + " Write_avg " + rand(900, 1300) + " Read_peak " + rand(4000, 4400) + " Write_peak " + rand(3100, 4200));
+			testMsg("WS-cluster-fps: " + rand(45, 60));
+			setTimeout(test_random_data, 300);
+		}
+
+		d("Testing with random data, NOT connected to any target!");
+		test_random_data();
+		document.getElementById('ipaddr').value = "172.24.190.110";
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	reset();
+	//unitTest();
+
+</script>
+
+</html>
