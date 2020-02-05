@@ -4,6 +4,8 @@
 	<!--
 	<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 	-->
+	<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+	<meta content="utf-8" http-equiv="encoding">
 	<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 	<link href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap" rel="stylesheet">
 </head>
@@ -62,8 +64,7 @@
 		<button style="margin-left: 10px;" onclick="connect()">Connect</button>
 	</div>
 	<div style="margin: 5px;">
-		<text id="conn_status" style="margin: 30px; color: rgb(128, 128, 128);">Waiting for connection...</text>
-		<text id="debug" style="color: brown">Debug messages here.</text>
+		<text id="debug" style="color: brown">Waiting for connection...</text>
 	</div>
 
 	<hr style="border: rgb(0, 77, 165) solid 2px;"></hr>
@@ -237,7 +238,7 @@
 
 		document.getElementById('stats_area').innerHTML = "";
 		document.getElementById('toggles').innerHTML = "";
-		document.getElementById('conn_status').innerText = "Waiting for connection...";
+		d("Waiting for connection...");
 	}
 
 	function handle_message(event) {
@@ -270,7 +271,7 @@
 		connection = new WebSocket('ws://' + ipaddr + ':' + port);
 
 		connection.onopen = function () {
-			document.getElementById('conn_status').innerText = "Connected to " + ipaddr;
+			d("Connected to " + ipaddr);
 		};
 
 		connection.onmessage = handle_message;
@@ -322,6 +323,7 @@
 
 		function test_random_data() {
 
+			d("Testing with random data, NOT connected to any target!");
 			if (unitTestStop == 1)
 				return
 			testMsg("WS-cpuload: 4 R5F " + rand(33, 62) + " C6x " + rand(52, 59) + " A72 " + rand(9, 42) + " GPU " + rand(73, 91));
@@ -330,13 +332,12 @@
 			setTimeout(test_random_data, 300);
 		}
 
-		d("Testing with random data, NOT connected to any target!");
-		test_random_data();
-		document.getElementById('ipaddr').value = "172.24.190.110";
+		//test_random_data();
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	reset();
+	//document.getElementById('ipaddr').value = "172.24.190.9";
 	//unitTest();
 
 </script>
