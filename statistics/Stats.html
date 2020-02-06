@@ -69,9 +69,10 @@
 
 	<hr style="border: rgb(0, 77, 165) solid 2px;"></hr>
 	<div style="display: flex; padding: 3px; margin: 3px;">
-			<text>Click to toggle filters: </text>
-			<text id="sample_toggle" style="cursor: pointer; padding: 2px; margin-left: 10px; display: none;" target="dummy" onclick="toggle_item(this)">Sample</text>
-			<div id="toggles" style="display: flex;"></div>
+		<text>Click to toggle filters: </text>
+		<text id="sample_toggle" style="cursor: pointer; padding: 2px; margin-left: 10px; display: none;" target="dummy"
+			onclick="toggle_item(this)">Sample</text>
+		<div id="toggles" style="display: flex;"></div>
 	</div>
 	<div id="stats_area" style="border: rgb(0, 77, 165) dashed 2px; min-height: 300px;"></div>
 </body>
@@ -88,11 +89,31 @@
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	function barGraphCreate(id, caption, traces, num_samples, maxval) {
+	function isObject(item) {
+		return (item && typeof item === 'object' && !Array.isArray(item));
+	}
+
+	function mergeDeep(target, ...sources) {
+		if (!sources.length) return target;
+		const source = sources.shift();
+
+		if (isObject(target) && isObject(source)) {
+			for (const key in source) {
+				if (isObject(source[key])) {
+					if (!target[key]) Object.assign(target, { [key]: {} });
+					mergeDeep(target[key], source[key]);
+				} else {
+					Object.assign(target, { [key]: source[key] });
+				}
+			}
+		}
+		return mergeDeep(target, ...sources);
+	}
+	///////////////////////////////////////////////////////////////////////////
+	function barGraphCreate(id, caption, traces, num_samples, custom_layout) {
 		var graph = new Object();
 		graph.id = id;
 		graph.num_samples = num_samples;
-		graph.maxval = maxval;
 		graph.cnt = 0
 
 		parent = document.getElementById('stats_area');
@@ -127,7 +148,6 @@
 				},
 			},
 			yaxis: {
-				range: [0, graph.maxval],
 				title: {
 					text: caption,
 					font: {
@@ -138,7 +158,7 @@
 			},
 		};
 
-
+		mergeDeep(layout, custom_layout);
 		Plotly.plot(graph.id, data, layout);
 		return graph;
 	}
@@ -160,7 +180,7 @@
 		}
 	}
 
-	function handle_bargraph(values, id, name, label, num_samples, maxval) {
+	function handle_bargraph(values, id, name, label, custom_layout) {
 		var traces = [];
 		var data = [];
 		var x;
@@ -175,7 +195,7 @@
 					type: 'line',
 				});
 			}
-			bargraphs[id] = barGraphCreate(id, label, traces, num_samples, maxval);
+			bargraphs[id] = barGraphCreate(id, label, traces, 100, custom_layout);
 			add_toggle_button(id, name);
 		} else {
 			for (i = 0; i < parseInt(values[1]); i++) {
@@ -242,6 +262,22 @@
 		d("Waiting for connection...");
 	}
 
+	function convert_units_to_absolute(input) {
+		var regex = /([0-9]+)([KMG])bps/;
+		var conversion = { "K": 1000, "M": 1000000, "G": 1000000000 };
+		output = []
+		console.log("input = " + input);
+		for (value of input) {
+			match = regex.exec(value);
+			if (match) {
+				value = match[1] * conversion[match[2]];
+			}
+			output.push(value);
+		}
+		console.log("output = " + output);
+		return output;
+	}
+
 	function handle_message(event) {
 		//console.log("Received data: " + event.data);
 		values = event.data.split(" ");
@@ -249,10 +285,30 @@
 
 		switch (tag) {
 			case "WS-cpuload:":
-				handle_bargraph(values, 'cpuload', "CPU load", "CPUload (%)", 100, 100);
+				layout = {
+					yaxis: {
+						range: [0, 100],
+					},
+				};
+				handle_bargraph(values, 'cpuload', "CPU load", "CPUload (%)", layout);
 				break;
 			case "WS-ddrbw:":
-				handle_bargraph(values, 'ddrbw', "DDR Bandwidth", "DDR bandwidth (MBps)", 100, 10000);
+				layout = {
+					yaxis: {
+						range: [0, 10000],
+					},
+				};
+				handle_bargraph(values, 'ddrbw', "DDR Bandwidth", "DDR bandwidth (MBps)", layout);
+				break;
+			case "WS-ethfw-bw:":
+				values = convert_units_to_absolute(values);
+				layout = {
+					yaxis: {
+						range: [0, 9],
+						type: "log",
+					},
+				};
+				handle_bargraph(values, 'ethfwbw', "Ethernet bandwidth", "Ethernet bandwidth", layout);
 				break;
 			case "WS-cluster-fps:":
 				handle_indicator(values, 'cluster-fps', "Cluster FPS", "Cluster FPS", 60)
@@ -313,7 +369,7 @@
 	}
 
 	function testMsg(msg) {
-		handle_message({data : msg});
+		handle_message({ data: msg });
 	}
 	function unitTest() {
 
@@ -329,6 +385,7 @@
 				return
 			testMsg("WS-cpuload: 4 R5F " + rand(33, 62) + " C6x " + rand(52, 59) + " A72 " + rand(9, 42) + " GPU " + rand(73, 91));
 			testMsg("WS-ddrbw: 4 Read_avg " + rand(1800, 2200) + " Write_avg " + rand(900, 1300) + " Read_peak " + rand(4000, 4400) + " Write_peak " + rand(3100, 4200));
+			testMsg("WS-ethfw-bw: 4 Port0_RX " + rand(0, 999) + "Kbps Port0_TX " + rand(150, 300) + "Kbps Port1_RX " + rand(300, 700) + "Mbps Port1_TX " + rand(12, 67) + "Mbps");
 			testMsg("WS-cluster-fps: " + rand(45, 60));
 			setTimeout(test_random_data, 300);
 		}
