@@ -79,7 +79,7 @@
 <script>
 
 	var debug = document.getElementById("debug")
-	var bargraphs = {};
+	var linegraphs = {};
 	var indicators = {};
 	var connection;
 	var unitTestStop = 0;
@@ -109,8 +109,25 @@
 		}
 		return mergeDeep(target, ...sources);
 	}
+
+	function convert_units_to_absolute(input) {
+		var regex = /([0-9]+)([KMG])bps/;
+		var conversion = { "K": 1000, "M": 1000000, "G": 1000000000 };
+		output = []
+		//console.log("input = " + input);
+		for (value of input) {
+			match = regex.exec(value);
+			if (match) {
+				value = match[1] * conversion[match[2]];
+			}
+			output.push(value);
+		}
+		//console.log("output = " + output);
+		return output;
+	}
+
 	///////////////////////////////////////////////////////////////////////////
-	function barGraphCreate(id, caption, traces, num_samples, custom_layout) {
+	function linegraphCreate(id, caption, traces, num_samples, custom_layout) {
 		var graph = new Object();
 		graph.id = id;
 		graph.num_samples = num_samples;
@@ -158,12 +175,14 @@
 			},
 		};
 
-		mergeDeep(layout, custom_layout);
+		if (custom_layout) {
+			mergeDeep(layout, custom_layout);
+		}
 		Plotly.plot(graph.id, data, layout);
 		return graph;
 	}
 
-	function barGraphUpdate(graph, data) {
+	function linegraphUpdate(graph, data) {
 		var indices = [];
 		for (i = 0; i < data.length; i++) {
 			indices.push(i);
@@ -180,29 +199,29 @@
 		}
 	}
 
-	function handle_bargraph(values, id, name, label, custom_layout) {
+	function handle_linegraph(values, id, name, label, custom_layout) {
 		var traces = [];
 		var data = [];
 		var x;
 
-		if (bargraphs[id] == null) {
+		if (linegraphs[id] == null) {
 			for (i = 0; i < parseInt(values[1]); i++) {
 				type = values[2 + i * 2];
-				console.log("Adding bargraph trace for " + id + ":" + type);
+				console.log("Adding linegraph trace for " + id + ":" + type);
 				traces.push({
 					y: [0],
 					name: type,
 					type: 'line',
 				});
 			}
-			bargraphs[id] = barGraphCreate(id, label, traces, 100, custom_layout);
+			linegraphs[id] = linegraphCreate(id, label, traces, 100, custom_layout);
 			add_toggle_button(id, name);
 		} else {
 			for (i = 0; i < parseInt(values[1]); i++) {
 				curVal = values[3 + i * 2];
 				data.push([parseInt(curVal),]);
 			}
-			barGraphUpdate(bargraphs[id], data);
+			linegraphUpdate(linegraphs[id], data);
 		}
 	}
 
@@ -254,28 +273,12 @@
 			connection.close();
 		}
 
-		bargraphs = {};
+		linegraphs = {};
 		indicators = {};
 
 		document.getElementById('stats_area').innerHTML = "";
 		document.getElementById('toggles').innerHTML = "";
 		d("Waiting for connection...");
-	}
-
-	function convert_units_to_absolute(input) {
-		var regex = /([0-9]+)([KMG])bps/;
-		var conversion = { "K": 1000, "M": 1000000, "G": 1000000000 };
-		output = []
-		console.log("input = " + input);
-		for (value of input) {
-			match = regex.exec(value);
-			if (match) {
-				value = match[1] * conversion[match[2]];
-			}
-			output.push(value);
-		}
-		console.log("output = " + output);
-		return output;
 	}
 
 	function handle_message(event) {
@@ -290,7 +293,7 @@
 						range: [0, 100],
 					},
 				};
-				handle_bargraph(values, 'cpuload', "CPU load", "CPUload (%)", layout);
+				handle_linegraph(values, 'cpuload', "CPU load", "CPUload (%)", layout);
 				break;
 			case "WS-ddrbw:":
 				layout = {
@@ -298,7 +301,7 @@
 						range: [0, 10000],
 					},
 				};
-				handle_bargraph(values, 'ddrbw', "DDR Bandwidth", "DDR bandwidth (MBps)", layout);
+				handle_linegraph(values, 'ddrbw', "DDR Bandwidth", "DDR bandwidth (MBps)", layout);
 				break;
 			case "WS-ethfw-bw:":
 				values = convert_units_to_absolute(values);
@@ -308,7 +311,7 @@
 						type: "log",
 					},
 				};
-				handle_bargraph(values, 'ethfwbw', "Ethernet bandwidth", "Ethernet bandwidth", layout);
+				handle_linegraph(values, 'ethfwbw', "Ethernet bandwidth", "Ethernet bandwidth", layout);
 				break;
 			case "WS-cluster-fps:":
 				handle_indicator(values, 'cluster-fps', "Cluster FPS", "Cluster FPS", 60)
@@ -390,13 +393,14 @@
 			setTimeout(test_random_data, 300);
 		}
 
-		//test_random_data();
+		document.getElementById('ipaddr').value = "172.24.190.9";
+		test_random_data();
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	reset();
-	//document.getElementById('ipaddr').value = "172.24.190.9";
-	//unitTest();
+	
+	unitTest();
 
 </script>
 
