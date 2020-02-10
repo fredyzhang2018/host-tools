@@ -80,6 +80,7 @@
 
 	var debug = document.getElementById("debug")
 	var linegraphs = {};
+	var bargraphs = {};
 	var indicators = {};
 	var connection;
 	var unitTestStop = 0;
@@ -229,6 +230,76 @@
 	}
 
 	///////////////////////////////////////////////////////////////////////////
+	function bargraphCreate(id, caption, x, y, custom_layout) {
+		var graph = new Object();
+		width = [];
+		graph.id = id;
+
+		parent = document.getElementById('stats_area');
+		div = document.createElement("div");
+		div.setAttribute('id', id);
+		div.className = "graph";
+		parent.appendChild(div);
+		graph.div = div;
+
+		for (val of y) {
+			width.push(0.3);
+		}
+		console.log(width);
+		data = [{
+			x: x,
+			y: y,
+			type: 'bar',
+			name: caption,
+			width: width,
+		}];
+		layout = {
+			yaxis: {
+				range: [0, 100],
+				title: {
+					text: caption,
+					font: {
+						family: 'Open Sans, sans-serif',
+						color: '#7f7f7f',
+					},
+				},
+			},
+		};
+
+		if (custom_layout) {
+			mergeDeep(layout, custom_layout);
+		}
+		Plotly.plot(graph.id, data, layout);
+		return graph;
+	}
+
+	function bargraphUpdate(graph, y) {
+		Plotly.restyle(graph.id, 'y', [y]);
+	}
+
+	function handle_bargraph(values, id, name, custom_layout) {
+		var x = [];
+		var y = [];
+
+		if (bargraphs[id] == null) {
+			for (i = 0; i < parseInt(values[1]); i++) {
+				type = values[2 + i * 2];
+				val = parseInt(values[3 + i * 2]);
+				console.log("Adding bargraph for " + id);
+				x.push(type);
+				y.push(val);
+			}
+			bargraphs[id] = bargraphCreate(id, name, x, y, custom_layout);
+			add_toggle_button(id, name);
+		} else {
+			for (i = 0; i < parseInt(values[1]); i++) {
+				val = parseInt(values[3 + i * 2]);
+				y.push(val);
+			}
+			bargraphUpdate(bargraphs[id], y);
+		}
+	}
+	///////////////////////////////////////////////////////////////////////////
 	function indicatorCreate(id, name, maxval) {
 		var indicator = new Object();
 		indicator.id = id;
@@ -297,6 +368,7 @@
 					},
 				};
 				handle_linegraph(values, 'cpuload', "CPU load", "CPUload (%)", layout);
+				handle_bargraph(values, 'bar_cpuload', "CPU load bar", "CPUload (%)", layout);
 				break;
 			case "WS-ddrbw:":
 				layout = {
