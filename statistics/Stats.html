@@ -207,19 +207,22 @@
 		if (linegraphs[id] == null) {
 			for (i = 0; i < parseInt(values[1]); i++) {
 				type = values[2 + i * 2];
+				val = parseInt(values[3 + i * 2]);
 				console.log("Adding linegraph trace for " + id + ":" + type);
 				traces.push({
 					y: [0],
 					name: type,
 					type: 'line',
 				});
+				data.push([val,]);
 			}
 			linegraphs[id] = linegraphCreate(id, label, traces, 100, custom_layout);
+			linegraphUpdate(linegraphs[id], data);
 			add_toggle_button(id, name);
 		} else {
 			for (i = 0; i < parseInt(values[1]); i++) {
-				curVal = values[3 + i * 2];
-				data.push([parseInt(curVal),]);
+				val = values[3 + i * 2];
+				data.push([val,]);
 			}
 			linegraphUpdate(linegraphs[id], data);
 		}
