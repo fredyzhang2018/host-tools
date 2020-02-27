@@ -102,15 +102,19 @@ def print_rmcfg(rmcfg):
 parser = argparse.ArgumentParser(prog='RM-autogen.py', formatter_class=argparse.RawTextHelpFormatter,
 	description='RM-autogen.py - Auto generate the Resource Management data')
 
-parser.add_argument('-f', '--format', required=True, dest='format',
-	action='store', choices=["boardconfig", "rtos_rmcfg", "jailhouse_cell_config"],
-	help='format to select the output file')
+parser.add_argument('-s', '--soc', required=True, dest='soc',
+	action='store', choices=['j721e', 'am65x'],
+	help='Share resource with HOST_ID_A for HOST_ID_B')
 
 parser.add_argument('-o', '--output', required=True, dest='output',
 	action='store',
 	help='output file name')
 
-parser.add_argument('-s', '--share', dest='share', default=[],
+parser.add_argument('-f', '--format', required=True, dest='format',
+	action='store', choices=['boardconfig', 'jailhouse_cell_config'],
+	help='format to select the output file')
+
+parser.add_argument('--share', dest='share', default=[],
 	action='append', nargs=2, metavar=('HOST_ID_A', 'HOST_ID_B'),
 	help='Share resource with HOST_ID_A for HOST_ID_B')
 
@@ -119,8 +123,9 @@ parser.add_argument('workbook', help='Input excel sheet with assigned resources'
 args = parser.parse_args()
 print(args)
 
+soc = __import__(args.soc)
 workbook = xlrd.open_workbook(args.workbook)
-sheet = workbook.sheet_by_index(0)
+sheet = workbook.sheet_by_name(args.soc)
 
 #sheet.nrows = 9
 if (args.format == 'boardconfig'):
