@@ -14,6 +14,7 @@ COL_COMMENT = 0
 COL_RES_TYPE = 1
 COL_SUB_TYPE = 2
 COL_RES_FIELD = 3
+COL_RES_COUNT = 5
 COL_RES_START = 6
 COL_HOST_START = 7
 
@@ -30,11 +31,17 @@ def gen_rmcfg_data(sharing):
 		comment = sheet.cell_value(res, COL_COMMENT)
 		restype = sheet.cell_value(res, COL_RES_TYPE)
 		subtype = sheet.cell_value(res, COL_SUB_TYPE)
+		count = sheet.cell_value(res, COL_RES_COUNT)
 		start = sheet.cell_value(res, COL_RES_START)
-		if (restype == '' or subtype == '' or start == ''):
+		if (restype == '' or subtype == '' or start == '' or count == ''):
 			continue
 		start = int(start)
+		count = int(count)
 		comments[(restype, subtype)] = comment
+
+		if (args.allow_all):
+			rmcfg.append((start, count, restype, subtype, "HOST_ID_ALL"))
+			continue
 
 		for host in range(COL_HOST_START, sheet.ncols):
 
@@ -57,8 +64,8 @@ def gen_rmcfg_data(sharing):
 				shared_host = pair[1]
 				rmcfg.append((start, num, restype, subtype, shared_host))
 
-
 			start += int(num)
+
 	return rmcfg
 
 def print_rmcfg(rmcfg):
@@ -117,6 +124,10 @@ parser.add_argument('-f', '--format', required=True, dest='format',
 parser.add_argument('--share', dest='share', default=[],
 	action='append', nargs=2, metavar=('HOST_ID_A', 'HOST_ID_B'),
 	help='Share resource with HOST_ID_A for HOST_ID_B')
+
+parser.add_argument('--allow_all', dest='allow_all',
+	action='store_true',
+	help='Create the minimal boardconfig to allow all hosts to access all resources')
 
 parser.add_argument('workbook', help='Input excel sheet with assigned resources')
 
