@@ -13,7 +13,6 @@ import re
 COL_COMMENT = 0
 COL_RES_TYPE = 1
 COL_SUB_TYPE = 2
-COL_RES_FIELD = 3
 COL_RES_COUNT = 5
 COL_RES_START = 6
 COL_HOST_START = 7
@@ -111,7 +110,7 @@ parser = argparse.ArgumentParser(prog='RM-autogen.py', formatter_class=argparse.
 
 parser.add_argument('-s', '--soc', required=True, dest='soc',
 	action='store', choices=['j721e', 'am65x'],
-	help='Share resource with HOST_ID_A for HOST_ID_B')
+	help='SoC name')
 
 parser.add_argument('-o', '--output', required=True, dest='output',
 	action='store',
