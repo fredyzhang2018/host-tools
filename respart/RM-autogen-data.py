@@ -18,7 +18,7 @@ ROW_RES_START = 2
 dict_dev = {}
 dict_subtype = {}
 dict_host = {}
-devtypes = {}
+utypes = []
 
 def evalcmd(cmd):
 	out = subprocess.check_output(cmd, shell=True).decode("utf-8")
@@ -63,20 +63,19 @@ def gen_rm_resasg_sheet(sheet):
 			COL_BALANCE = col
 		col = col + 1
 	row = 1
-	for dev in devtypes.keys():
-		for entry in devtypes[dev]:
-			(subtype, start, count) = entry
-			sheet.write(row, COL_RES_TYPE, dev)
-			sheet.write(row, COL_SUB_TYPE, subtype)
-			sheet.write(row, COL_RES_START, start)
-			sheet.write(row, COL_RES_COUNT, count)
-			formula = xlwt.Formula('%s - SUM(%s:%s)' % (
-				rowcol_to_cell(row, COL_RES_COUNT),
-				rowcol_to_cell(row, COL_HOST_START),
-				rowcol_to_cell(row, COL_BALANCE - 1)
-			))
-			sheet.write(row, COL_BALANCE, formula, fmt_grayed)
-			row = row + 1
+	for entry in utypes:
+		(dev, subtype, start, count) = entry
+		sheet.write(row, COL_RES_TYPE, dev)
+		sheet.write(row, COL_SUB_TYPE, subtype)
+		sheet.write(row, COL_RES_START, start)
+		sheet.write(row, COL_RES_COUNT, count)
+		formula = xlwt.Formula('%s - SUM(%s:%s)' % (
+			rowcol_to_cell(row, COL_RES_COUNT),
+			rowcol_to_cell(row, COL_HOST_START),
+			rowcol_to_cell(row, COL_BALANCE - 1)
+		))
+		sheet.write(row, COL_BALANCE, formula, fmt_grayed)
+		row = row + 1
 
 
 ################################################################################
@@ -101,7 +100,7 @@ parser.add_argument('--sysfw_path', required=True, dest='prefix',
 args = parser.parse_args()
 print(args)
 
-# Parse docuemntation and extract the different defines
+# Parse docuemntation and extract host_id defines
 output = evalcmd('cat %s/output/%s/sec_proxy/hosts.h | grep "#define HOST_ID" | awk -F"[ ()]*" \'{print $2" " $3}\'' % (args.prefix, args.soc))
 for line in output.split('\n'):
 	if (line == ''):
@@ -110,9 +109,8 @@ for line in output.split('\n'):
 	host_id = int(host_id.strip(string.ascii_letters), 0)
 	dict_host[host] = host_id
 
-#Following is a simpler way to generate this data from public documentation
-'''
-output = evalcmd('cat %s/output/%s/rm/ | grep SUBTYPE | awk -F" " \'{ print $2" "$4" "$6" "$8" "$10 }\'' % (args.prefix, args.soc))
+# Parse docuemntation and extract dev_id and subtype defines
+output = evalcmd('cat %s/output/%s/rm/resasg_types.rst | grep SUBTYPE | awk -F" " \'{ print $2" "$4" "$6" "$8" "$10 }\'' % (args.prefix, args.soc))
 dev = dev_id = None
 for line in output.split('\n'):
 	if (line == ''):
@@ -127,12 +125,12 @@ for line in output.split('\n'):
 	#print (dev, dev_id, subtype, subtype_id, utype_id)
 	dict_dev[dev] = int(dev_id, 0)
 	dict_subtype[subtype] = int(subtype_id, 0)
-	if (dev in devtypes.keys()):
-		devtypes[dev].append(subtype)
-	else:
-		devtypes[dev] = [subtype]
+	# TODO Add raneg parsing when documentation supports
+	'''
+	utypes.append((dev, subtype))
+	'''
 
-'''
+#Parse bordconfig to extract the dev, subtype and range of resources
 output = evalcmd('cat %s/output/%s/rm/boardcfg_rm_data.c | grep -A100000 "resasg_entries" | awk \'BEGIN { FS="\\n"; RS="{" } { print $2 " " $3 " " $4 }\' | awk -F" " \'{print $3 " " $4 " " $7 " " $10}\'' % (args.prefix, args.soc))
 for line in output.split('\n'):
 	if (line == ''):
@@ -144,13 +142,11 @@ for line in output.split('\n'):
 	start = int(start)
 	count = int(count)
 	#print((dev, subtype, start, count))
-	if (dev in devtypes.keys()):
-		devtypes[dev].append((subtype, start, count))
-	else:
-		devtypes[dev] = [(subtype, start, count)]
+	utypes.append((dev, subtype, start, count))
+
 #print(dict_dev)
 #print(dict_subtype)
-#print(devtypes)
+#print(utypes)
 
 #Generate the soc data defines
 data = gen_soc_py_data(args.soc)
