@@ -36,14 +36,20 @@ const_values  = {
 %s}'''
 	header = "# %s.py - Auto generated SoC data\n" % soc
 	devs = ""
-	for i in dict_dev:
-		devs += '"%s" : %d,\n' % (i, dict_dev[i])
+	for i in sorted(dict_dev.items(), key=lambda x: x[1]):
+		(dev, dev_id) = i
+		devs += '"%s" : %d,\n' % (dev, dev_id)
+
 	subtypes = ""
-	for i in dict_subtype:
-		subtypes += '"%s" : %d,\n' % (i, dict_subtype[i])
+	for i in sorted(dict_subtype.items(), key=lambda x: x[1]):
+		(subtype, subtype_id) = i
+		subtypes += '"%s" : %d,\n' % (subtype, subtype_id)
+
 	hosts = ""
-	for i in dict_host:
-		hosts += '"%s" : %d,\n' % (i, dict_host[i])
+	for i in sorted(dict_host.items(), key=lambda x: x[1]):
+		(host, host_id) = i
+		hosts += '"%s" : %d,\n' % (host, host_id)
+
 	return output % (header, devs, subtypes, hosts)
 
 def gen_rm_resasg_sheet(sheet):
