@@ -116,26 +116,27 @@ for line in output.split('\n'):
 	dict_host[host] = host_id
 
 # Parse docuemntation and extract dev_id and subtype defines
-output = evalcmd('cat %s/output/%s/rm/resasg_types.rst | grep SUBTYPE | awk -F" " \'{ print $2" "$4" "$6" "$8" "$10 }\'' % (args.prefix, args.soc))
+output = evalcmd('cat %s/output/%s/rm/resasg_types.rst | grep  -v "\------" | grep -A100000 "+======" | tail -n +2' % (args.prefix, args.soc))
 dev = dev_id = None
 for line in output.split('\n'):
-	if (line == ''):
+	array = line.replace(' ', '').split('|')
+	if(len(array) == 1):
 		continue
-	array = line.split(' ')
-	#print(array)
-	if (array[0] != '|'):
-		(dev, dev_id, subtype, subtype_id, utype_id) = array
-	else:
-		(dummy, subtype, subtype_id, utype_id, dummy) = array
 
-	#print (dev, dev_id, subtype, subtype_id, utype_id)
+	if (array[1] != ''):
+		(x, dev, dev_id, subtype, subtype_id, utype_id, start, count, x) = array
+	elif (array[3] != ''):
+		(x, x, x, subtype, subtype_id, utype_id, start, count, x) = array
+	else:
+		(x, x, x, x, x, x, start, count, x) = array
+
+	#print (dev, dev_id, subtype, subtype_id, utype_id, start, count)
 	dict_dev[dev] = int(dev_id, 0)
 	dict_subtype[subtype] = int(subtype_id, 0)
 	# TODO Add raneg parsing when documentation supports
-	'''
-	utypes.append((dev, subtype))
-	'''
+	utypes.append((dev, subtype, start, count))
 
+'''
 #Parse bordconfig to extract the dev, subtype and range of resources
 output = evalcmd('cat %s/output/%s/rm/boardcfg_rm_data.c | grep -A100000 "resasg_entries" | awk \'BEGIN { FS="\\n"; RS="{" } { print $2 " " $3 " " $4 }\' | awk -F" " \'{print $3 " " $4 " " $7 " " $10}\'' % (args.prefix, args.soc))
 for line in output.split('\n'):
@@ -149,6 +150,7 @@ for line in output.split('\n'):
 	count = int(count)
 	#print((dev, subtype, start, count))
 	utypes.append((dev, subtype, start, count))
+'''
 
 #print(dict_dev)
 #print(dict_subtype)
