@@ -52,6 +52,13 @@ const_values  = {
 
 	return output % (header, devs, subtypes, hosts)
 
+def gen_rm_resasg_csv():
+	output = ""
+	for entry in utypes:
+		(dev, subtype, start, count) = entry
+		output += "%s,%s,%d,%d\n" % (dev, subtype, start, count)
+	return output
+
 def gen_rm_resasg_sheet(sheet):
 
 	fmt_header = xlwt.easyxf('font: color-index blue, bold on')
@@ -129,11 +136,12 @@ for line in output.split('\n'):
 		(x, x, x, subtype, subtype_id, utype_id, start, count, x) = array
 	else:
 		(x, x, x, x, x, x, start, count, x) = array
+	start=int(start, 0)
+	count=int(count, 0)
 
 	#print (dev, dev_id, subtype, subtype_id, utype_id, start, count)
 	dict_dev[dev] = int(dev_id, 0)
 	dict_subtype[subtype] = int(subtype_id, 0)
-	# TODO Add raneg parsing when documentation supports
 	utypes.append((dev, subtype, start, count))
 
 '''
@@ -159,6 +167,12 @@ for line in output.split('\n'):
 #Generate the soc data defines
 data = gen_soc_py_data(args.soc)
 ofile = open("%s.py" % args.soc, "w")
+ofile.write(data)
+ofile.close()
+
+#Generate the csv file with default values
+data = gen_rm_resasg_csv()
+ofile = open("%s.csv" % args.soc, "w")
 ofile.write(data)
 ofile.close()
 
