@@ -57,10 +57,11 @@ def gen_rmcfg_data(sharing):
 
 			key = (restype, subtype, host_id)
 			value = (start, num)
-			if (key in resasg):
-				resasg[key].append(value)
-			else:
+			if (key not in resasg):
 				resasg[key] = [value]
+			else:
+				print ("WARNING: Ignoring multiple entries for (%s,%s,%s)" % key)
+				#resasg[key].append(value)
 			rmcfg.append((start, num, restype, subtype, host_id))
 
 			for pair in sharing:
