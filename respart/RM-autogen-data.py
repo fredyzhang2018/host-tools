@@ -7,13 +7,12 @@ from xlwt.Utils import rowcol_to_cell
 COL_COMMENT = 0
 COL_RES_TYPE = 1
 COL_SUB_TYPE = 2
-COL_RES_FIELD = 3
-COL_RES_COUNT = 5
-COL_RES_START = 6
-COL_HOST_START = 7
+COL_RES_COUNT = 3
+COL_RES_START = 4
+COL_HOST_START = 5
 
 ROW_HOST_ID = 0
-ROW_RES_START = 2
+ROW_RES_START = 1
 
 dict_dev = {}
 dict_subtype = {}

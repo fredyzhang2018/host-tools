@@ -13,14 +13,15 @@ import re
 COL_COMMENT = 0
 COL_RES_TYPE = 1
 COL_SUB_TYPE = 2
-COL_RES_COUNT = 5
-COL_RES_START = 6
-COL_HOST_START = 7
+COL_RES_COUNT = 3
+COL_RES_START = 4
+COL_HOST_START = 5
 
 ROW_HOST_ID = 0
-ROW_RES_START = 2
+ROW_RES_START = 1
 
 comments = {}
+resasg = {}
 
 def gen_rmcfg_data(sharing):
 	global comments
@@ -54,6 +55,12 @@ def gen_rmcfg_data(sharing):
 				continue
 			num = int(num)
 
+			key = (restype, subtype, host_id)
+			value = (start, num)
+			if (key in resasg):
+				resasg[key].append(value)
+			else:
+				resasg[key] = [value]
 			rmcfg.append((start, num, restype, subtype, host_id))
 
 			for pair in sharing:
