@@ -54,7 +54,7 @@ const_values  = {
 def gen_rm_resasg_csv():
 	output = ""
 	for entry in utypes:
-		(dev, subtype, start, count) = entry
+		(dev, subtype, count, start) = entry
 		output += "%s,%s,%d,%d\n" % (dev, subtype, start, count)
 	return output
 
@@ -113,7 +113,7 @@ args = parser.parse_args()
 print(args)
 
 # Parse docuemntation and extract host_id defines
-output = evalcmd('cat %s/output/%s/sec_proxy/hosts.h | grep "#define HOST_ID" | awk -F"[ ()]*" \'{print $2" " $3}\'' % (args.prefix, args.soc))
+output = evalcmd('cat %s/include/soc/%s/hosts.h | grep "#define HOST_ID" | awk -F"[ ()]*" \'{print $2" " $3}\'' % (args.prefix, args.soc))
 for line in output.split('\n'):
 	if (line == ''):
 		continue
@@ -122,7 +122,7 @@ for line in output.split('\n'):
 	dict_host[host] = host_id
 
 # Parse docuemntation and extract dev_id and subtype defines
-output = evalcmd('cat %s/output/%s/rm/resasg_types.rst | grep  -v "\------" | grep -A100000 "+======" | tail -n +2' % (args.prefix, args.soc))
+output = evalcmd('cat %s/docs/public/5_soc_doc/%s/resasg_types.rst | grep  -v "\------" | grep -A100000 "+======" | tail -n +2' % (args.prefix, args.soc))
 dev = dev_id = None
 for line in output.split('\n'):
 	array = line.replace(' ', '').split('|')

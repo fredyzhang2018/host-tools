@@ -1,2 +1,7 @@
 .gitignore
+respart/RESASG.xls
+respart/entries.txt
+respart/rm-cfg.c
+k3-bootswitch/release/
+
 *.pyc
