@@ -98,7 +98,7 @@ parser = argparse.ArgumentParser(prog='RM-autogen.py', formatter_class=argparse.
 	description='RM-autogen.py - Auto generate the Resource Management data')
 
 parser.add_argument('-s', '--soc', required=True, dest='soc',
-	action='store', choices=['j721e', 'am65x'],
+	action='store', choices=['j721e', 'am6x', 'am65x_sr2'],
 	help='SoC name')
 
 parser.add_argument('-o', '--output', required=True, dest='output',
