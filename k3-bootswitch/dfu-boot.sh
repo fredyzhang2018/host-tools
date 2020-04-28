@@ -22,7 +22,7 @@ usage()
 	echo "  sudo ./dfu-boot.sh --mount DEV"
 	echo "      DEV: 1 for MMC, 0 for eMMC"
 	echo "  sudo ./dfu-boot.sh --bootmode MODE"
-	echo "      MODE: " `ls $boot_select/ | awk -F"." 'BEGIN{ORS=" "} { print $2 }'`
+	echo "      MODE: " `ls $boot_select/spl* | awk -F"." 'BEGIN{ORS=" "} { print $2 }'`
 }
 
 # Bootloader takes time to initialize
