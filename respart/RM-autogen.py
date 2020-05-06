@@ -75,7 +75,7 @@ def gen_rmcfg_data(sharing):
 
 	return rmcfg
 
-def print_rmcfg(rmcfg):
+def print_rmcfg(rmcfg, prefix=""):
 	comment_templ = '''
 		/* %s */\n'''
 	rmconfig_templ = '''\
@@ -87,6 +87,7 @@ def print_rmcfg(rmcfg):
 			.host_id = %s,
 		},\n'''
 	output = ""
+	rmconfig_templ = rmconfig_templ.replace("RESASG_UTYPE", "%sRESASG_UTYPE" % prefix)
 
 	def custom_key(entry):
 		(start, num, restype, subtype, host) = entry
@@ -106,6 +107,16 @@ def print_rmcfg(rmcfg):
 		if (comment != comments[(restype, subtype)]):
 			comment = comments[(restype, subtype)]
 			output += comment_templ % comment
+
+		# Quirk to add prefix for every dev/subtype macro (SCIclient uses TISCI prefix)
+		if (prefix):
+			dev_prefix = "%s_DEV" % args.soc.upper()
+			if (args.soc == "am6x" or args.soc == "am65x_sr2"):
+				dev_prefix = "AM6_DEV"
+
+			subtype = subtype.replace("RESASG", "%sRESASG" % prefix)
+			restype = restype.replace(dev_prefix, "%sDEV" % prefix)
+
 		output += rmconfig_templ % (start, num, restype, subtype, host)
 	return output
 
@@ -125,7 +136,7 @@ parser.add_argument('-o', '--output', required=True, dest='output',
 	help='output file name')
 
 parser.add_argument('-f', '--format', required=True, dest='format',
-	action='store', choices=['boardconfig', 'jailhouse_cell_config'],
+	action='store', choices=['boardcfg_kig', 'boardcfg_sciclient'],
 	help='format to select the output file')
 
 parser.add_argument('--share', dest='share', default=[],
@@ -146,12 +157,16 @@ workbook = xlrd.open_workbook(args.workbook)
 sheet = workbook.sheet_by_name(args.soc)
 
 #sheet.nrows = 9
-if (args.format == 'boardconfig'):
+if (args.format == 'boardcfg_kig'):
 	boardconfig = gen_rmcfg_data(args.share)
 	print ("Total entries = %d" % len(boardconfig))
 	data = print_rmcfg(boardconfig)
+elif (args.format == 'boardcfg_sciclient'):
+	boardconfig = gen_rmcfg_data(args.share)
+	print ("Total entries = %d" % len(boardconfig))
+	data = print_rmcfg(boardconfig, prefix="TISCI_")
 else:
-	print ("ERROR: format %s not supported")
+	print ("ERROR: format %s not supported" % args.format)
 	exit(1)
 
 
