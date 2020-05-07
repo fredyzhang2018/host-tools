@@ -22,6 +22,7 @@ ROW_RES_START = 1
 
 comments = {}
 resasg = {}
+host_list = []
 
 def gen_rmcfg_data(sharing):
 	global comments
@@ -54,6 +55,9 @@ def gen_rmcfg_data(sharing):
 			if (num == '' or int(num) == 0):
 				continue
 			num = int(num)
+
+			if (host_id not in host_list):
+				host_list.append(host_id)
 
 			key = (restype, subtype, host_id)
 			value = (start, num)
@@ -120,6 +124,15 @@ def print_rmcfg(rmcfg, prefix=""):
 		output += rmconfig_templ % (start, num, restype, subtype, host)
 	return output
 
+def print_per_host_id(rmcfg, prefix=""):
+	print host_list
+	for h_id in  host_list:
+		print (">>>>>> For host %s" % h_id)
+		for entry in rmcfg:
+			(start, num, restype, subtype, host) = entry
+			if (host == h_id):
+				print ("%s: %s start = %d, count = %d " % (restype, subtype, start, num))
+
 ################################################################################
 ##                          Main program starts here                          ##
 ################################################################################
@@ -142,6 +155,10 @@ parser.add_argument('-f', '--format', required=True, dest='format',
 parser.add_argument('--share', dest='share', default=[],
 	action='append', nargs=2, metavar=('HOST_ID_A', 'HOST_ID_B'),
 	help='Share resource with HOST_ID_A for HOST_ID_B')
+
+parser.add_argument('--perhost', dest='perhost',
+	action='store_true',
+	help='Print the resource assignment per host')
 
 parser.add_argument('--allow_all', dest='allow_all',
 	action='store_true',
@@ -169,6 +186,8 @@ else:
 	print ("ERROR: format %s not supported" % args.format)
 	exit(1)
 
+if (args.perhost):
+	print_per_host_id(boardconfig, prefix="TISCI_")
 
 ofile = open(args.output, "w")
 ofile.write(data)
