@@ -139,32 +139,32 @@ def print_per_host_id(rmcfg, prefix=""):
 
 parser = argparse.ArgumentParser(prog='RM-autogen.py', formatter_class=argparse.RawTextHelpFormatter,
 	description='RM-autogen.py - Auto generate the Resource Management data')
+required    = parser.add_argument_group('required arguments')
+optional    = parser.add_argument_group('optional arguments')
+conditional = parser.add_argument_group('conditional arguments')
 
-parser.add_argument('-s', '--soc', required=True, dest='soc',
+required.add_argument('-s', '--soc', required=True, dest='soc',
 	action='store', choices=['j721e', 'am6x', 'am65x_sr2'],
 	help='SoC name')
-
-parser.add_argument('-o', '--output', required=True, dest='output',
+required.add_argument('-o', '--output', required=True, dest='output',
 	action='store',
 	help='output file name')
-
-parser.add_argument('-f', '--format', required=True, dest='format',
+required.add_argument('-f', '--format', required=True, dest='format',
 	action='store', choices=['boardcfg_kig', 'boardcfg_sciclient'],
 	help='format to select the output file')
+required.add_argument('workbook',
+	help='Input excel sheet with assigned resources')
 
-parser.add_argument('--share', dest='share', default=[],
+optional.add_argument('--share', dest='share', default=[],
 	action='append', nargs=2, metavar=('HOST_ID_A', 'HOST_ID_B'),
 	help='Share resource with HOST_ID_A for HOST_ID_B')
-
-parser.add_argument('--perhost', dest='perhost',
+optional.add_argument('--perhost', dest='perhost',
 	action='store_true',
 	help='Print the resource assignment per host')
-
-parser.add_argument('--allow_all', dest='allow_all',
+optional.add_argument('--allow_all', dest='allow_all',
 	action='store_true',
 	help='Create the minimal boardconfig to allow all hosts to access all resources')
 
-parser.add_argument('workbook', help='Input excel sheet with assigned resources')
 
 args = parser.parse_args()
 print(args)
