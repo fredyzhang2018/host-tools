@@ -82,7 +82,7 @@ def gen_rmcfg_data(sharing):
 def print_rmcfg(rmcfg, prefix=""):
 	comment_templ = '''
 		/* %s */\n'''
-	rmconfig_templ = '''\
+	kig_rmconfig_templ = '''\
 		{
 			.start_resource = %d,
 			.num_resource = %d,
@@ -90,6 +90,20 @@ def print_rmcfg(rmcfg, prefix=""):
 					%s),
 			.host_id = %s,
 		},\n'''
+	sciclient_rmconfig_templ = '''\
+        {
+            .start_resource = %d,
+            .num_resource = %d,
+            .type = RESASG_UTYPE (%s, %s),
+            .host_id = %s,
+        },\n'''
+
+	if (args.format == "boardcfg_kig"):
+		rmconfig_templ = kig_rmconfig_templ
+	elif (args.format == "boardcfg_sciclient"):
+		rmconfig_templ = sciclient_rmconfig_templ
+		comment_templ = comment_templ.replace('\t', '    ')
+
 	output = ""
 	rmconfig_templ = rmconfig_templ.replace("RESASG_UTYPE", "%sRESASG_UTYPE" % prefix)
 
