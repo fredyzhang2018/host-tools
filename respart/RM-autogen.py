@@ -134,6 +134,7 @@ def print_rmcfg(rmcfg, prefix=""):
 
 			subtype = subtype.replace("RESASG", "%sRESASG" % prefix)
 			restype = restype.replace(dev_prefix, "%sDEV" % prefix)
+			host = "%s%s" % (prefix, host)
 
 		output += rmconfig_templ % (start, num, restype, subtype, host)
 	return output
