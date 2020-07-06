@@ -1,0 +1,55 @@
+From e54793d50f8211af99a5528af1c1dc968fb6ca96 Mon Sep 17 00:00:00 2001
+From: Nikhil Devshatwar <nikhil.nd@ti.com>
+Date: Thu, 16 Jul 2020 13:46:14 +0530
+Subject: [PATCH] HACK: Select bootmode and reset
+
+Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
+---
+ arch/arm/mach-k3/am6_init.c | 31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
+
+diff --git a/arch/arm/mach-k3/am6_init.c b/arch/arm/mach-k3/am6_init.c
+index 0ce7b83676..aefdda9ed7 100644
+--- a/arch/arm/mach-k3/am6_init.c
++++ b/arch/arm/mach-k3/am6_init.c
+@@ -141,6 +141,37 @@ void board_init_f(ulong dummy)
+ 	/* Make all control module registers accessible */
+ 	ctrl_mmr_unlock();
+ 
++#define MMC	0xdead0000
++#define EMMC	0xdead0001
++#define OSPI	0xdead0002
++#define UART	0xdead0003
++#define NOBOOT	0xdead0004
++#define BOOTMODE NOBOOT
++
++#if BOOTMODE == MMC
++	/* Set the boot mode to MMC/SD */
++	*((volatile uint32_t *)0x00100030) = 0x1006;
++	*((volatile uint32_t *)0x43000030) = 0x2db;
++#elif BOOTMODE == EMMC
++	/* Set the boot mode to EMMC */
++	*((volatile uint32_t *)0x00100030) = 0x000d;
++	*((volatile uint32_t *)0x43000030) = 0x2db;
++#elif BOOTMODE == OSPI
++	/* Set the boot mode to OSPI */
++	*((volatile uint32_t *)0x00100030) = 0x0001;
++	*((volatile uint32_t *)0x43000030) = 0x2db;
++#elif BOOTMODE == UART
++	/* Set the boot mode to UART */
++	*((volatile uint32_t *)0x00100030) = 0x000a;
++	*((volatile uint32_t *)0x43000030) = 0x2db;
++#elif BOOTMODE == NOBOOT
++	/* Set the boot mode to UART */
++	*((volatile uint32_t *)0x00100030) = 0x0000;
++	*((volatile uint32_t *)0x43000030) = 0x2db;
++#endif
++	/* Issue a system reset */
++	*((volatile uint32_t *)0x4301817C) = 0x0;
++
+ 	setup_am654_navss_northbridge();
+ 
+ #ifdef CONFIG_CPU_V7R
+-- 
+2.17.1
+
