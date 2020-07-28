@@ -136,7 +136,7 @@ case $1 in
 		init "j721e-evm"
 		shift
 		;;
-	--am6|--am654|--am65x-evm)
+	--am6|--am654|--am65x-evm|--am654-idk|--am65xx-evm)
 		init "am65xx-evm"
 		shift
 		;;
