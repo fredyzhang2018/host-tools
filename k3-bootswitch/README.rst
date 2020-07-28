@@ -26,14 +26,14 @@ Usage
 * Install dfu-util package on the Linux PC with
     ``sudo apt-get install dfu-util``
 * To boot the j721e-evm board in MMC bootmode, run following
-    ``sudo ./dfu-util.sh --j721e-evm --bootmode mmc``
+    ``sudo ./dfu-boot.sh --j721e-evm --bootmode mmc``
 
   Currently supported bootmodes are: **mmc, emmc, ospi, uart, noboot**
 
 * To mount the emmc from j721e-evm board to the Linux PC, run following
-    ``sudo ./dfu-util.sh --j721e-evm --mount 0``
+    ``sudo ./dfu-boot.sh --j721e-evm --mount 0``
 * To mount the SD card from am65xx-evm board to the Linux PC, run following
-    ``sudo ./dfu-util.sh --am65xx-evm --mount 1``
+    ``sudo ./dfu-boot.sh --am65xx-evm --mount 1``
 
 
 Advantages
@@ -84,7 +84,7 @@ differnent mechanism, update the **dfu-boot.sh** script with following:
   for main uart. (The one where all u-boot/SBL/kernel logs appear)
 * Update the **switch** variable to reflect the correct switch number  which
   controls the power via phidget
-* If you have a differen mechanism to power the board, write your own implementation
+* If you have a different mechanism to power the board, write your own implementation
   for **toggle_power** function instead of the default phidget commands
 
 
