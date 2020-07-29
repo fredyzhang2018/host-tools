@@ -63,9 +63,8 @@ msg=$1
 		sleep 0.2
 	done
 	>&2 echo "    >>>> ERROR: Timeout waiting for dfu"
-	>&2 echo "    >>>>        Make sure to connect Type-C cable to EVM and host machine"
-	>&2 echo "    >>>>        Bootswitch settings fot DFU boot:"
-	>&2 echo "    SW8 = 1000 0000    SW9 = 0010 0000    SW3 = 0101 00 1010"
+	>&2 echo "    >>>>        Make sure to connect USB cable from EVM to host machine"
+	>&2 echo "    >>>>        Refer to readme for correct switch settings for DFU bootmode:"
 	exit 1
 }
 

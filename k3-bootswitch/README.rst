@@ -9,6 +9,9 @@ Hardware setup
 --------------
 
 * USB cable should be connected from the board to the Linux PC
+* Note that on am65xx-evm, there is an adapter board for PCIe / USB.
+  This should be used for connecting the USB cable.
+  DFU boot is only supported from this port.
 * UART cable should be connected from the main_uart to Linux PC
 * Default switch settings should be for DFU boot mode
 * Power supply to the board should be connected via phidget USB relay
@@ -18,7 +21,7 @@ Switch settings for DFU boot mode
 ---------------------------------
 
 * j721e-evm settings  => SW8 = 1000 0000      SW9 = 0010 0000      SW3 = 0101 00 1010
-* am65xx-evm settings => SW2 = 0001 0000 00   SW3 = 0000 0000 00   SW4 = 11
+* am65xx-evm settings => SW2 = 0000 0000 00   SW3 = 0001 0000 00   SW4 = 11
 
 Usage
 -----
