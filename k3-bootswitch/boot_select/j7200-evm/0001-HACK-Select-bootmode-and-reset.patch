@@ -1,0 +1,54 @@
+From 68d5f3892b26b02d2df03b3f2acb939d70532eb8 Mon Sep 17 00:00:00 2001
+From: Nikhil Devshatwar <nikhil.nd@ti.com>
+Date: Tue, 7 Apr 2020 18:33:36 +0530
+Subject: [PATCH] HACK: Select bootmode and reset
+
+Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
+---
+ arch/arm/mach-k3/j721e_init.c | 30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
+
+diff --git a/arch/arm/mach-k3/j721e_init.c b/arch/arm/mach-k3/j721e_init.c
+index 1e90c02ee5..8d910ebd6c 100644
+--- a/arch/arm/mach-k3/j721e_init.c
++++ b/arch/arm/mach-k3/j721e_init.c
+@@ -261,6 +261,36 @@ void board_init_f(ulong dummy)
+ 	/* Make all control module registers accessible */
+ 	ctrl_mmr_unlock();
+ 
++#define MMC	0xdead0000
++#define EMMC	0xdead0001
++#define OSPI	0xdead0002
++#define UART	0xdead0003
++#define NOBOOT	0xdead0004
++#define BOOTMODE NOBOOT
++
++#if BOOTMODE == MMC
++	/* Set the boot mode to MMC/SD */
++	*((volatile uint8_t *)0x00100030) = 0x41;
++	*((volatile uint8_t *)0x43000030) = 0x00;
++#elif BOOTMODE == EMMC
++	*((volatile uint8_t *)0x00100030) = 0x01;
++	*((volatile uint8_t *)0x43000030) = 0x08;
++#elif BOOTMODE == OSPI
++	/* Set the boot mode to OSPI */
++	*((volatile uint8_t *)0x00100030) = 0x00;
++	*((volatile uint8_t *)0x43000030) = 0x08;
++#elif BOOTMODE == UART
++	/* Set the boot mode to UART */
++	*((volatile uint8_t *)0x00100030) = 0x00;
++	*((volatile uint8_t *)0x43000030) = 0x38;
++#elif BOOTMODE == NOBOOT
++	/* Set the boot mode to UART */
++	*((volatile uint8_t *)0x00100030) = 0x11;
++	*((volatile uint8_t *)0x43000030) = 0x38;
++#endif
++	/* Issue a system reset */
++	*((volatile uint32_t *)0x4301817C) = 0x60000;
++
+ #ifdef CONFIG_CPU_V7R
+ 	disable_linefill_optimization();
+ 	setup_k3_mpu_regions();
+-- 
+2.17.1
+

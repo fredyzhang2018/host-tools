@@ -14,8 +14,8 @@ usage()
 	echo
 	echo "dfu-boot.sh => Utility script to select bootmode and mount MMC to PC"
 	echo "Usage:"
-	echo "  sudo ./dfu-boot.sh PLATFORM --mount DEV | --bootmode MODE"
-	echo "    PLATFORM: Either of --j721e-evm or --am65xx-evm"
+	echo "  sudo ./dfu-boot.sh --PLATFORM --mount DEV | --bootmode MODE"
+	echo "    PLATFORM: j721e-evm, j7200-evm, am65xx-evm"
 	echo "    DEV: specify the device to mount => 1 for MMC, 0 for eMMC"
 	echo "    MODE: specify the bootmode to use"
 }
@@ -26,8 +26,11 @@ board=$1
 	if [ "$board" = "j721e-evm" ]; then
 		uart_dev=/dev/ttyUSB0
 		switch=0
+	elif [ "$board" = "j7200-evm" ]; then
+		uart_dev=/dev/ttyUSB6
+		switch=2
 	elif [ "$board" = "am65xx-evm" ]; then
-		uart_dev=/dev/ttyUSB4
+		uart_dev=/dev/ttyUSB12
 		switch=3
 	else
 		echo "Invalid board"
@@ -131,8 +134,12 @@ fi
 while [[ $# -gt 0 ]]
 do
 case $1 in
-	--j7|--j721e|--j721e-evm)
+	--j7|--j7es|--j721e|--j721e-evm)
 		init "j721e-evm"
+		shift
+		;;
+	--vcl|--j7vcl|--j7200|--j7200-evm)
+		init "j7200-evm"
 		shift
 		;;
 	--am6|--am654|--am65x-evm|--am654-idk|--am65xx-evm)
