@@ -14,23 +14,27 @@ usage()
 	echo
 	echo "dfu-boot.sh => Utility script to select bootmode and mount MMC to PC"
 	echo "Usage:"
-	echo "  sudo ./dfu-boot.sh --PLATFORM --mount DEV | --bootmode MODE"
+	echo "  sudo ./dfu-boot.sh --PLATFORM [--mount DEV | --bootmode MODE | --tftp ADDRESS]"
 	echo "    PLATFORM: j721e-evm, j7200-evm, am65xx-evm"
 	echo "    DEV: specify the device to mount => 1 for MMC, 0 for eMMC"
 	echo "    MODE: specify the bootmode to use"
+	echo "    ADDRESS: specify the IP address for tftp/NFS boot"
 }
 
 init() {
 board=$1
 	# Customize this as required
 	if [ "$board" = "j721e-evm" ]; then
-		uart_dev=/dev/ttyUSB0
+		uart_dev=/dev/ttyUSB12
+		nfspath=$HOME/targetfs/coresdk70
 		switch=0
 	elif [ "$board" = "j7200-evm" ]; then
-		uart_dev=/dev/ttyUSB6
+		uart_dev=/dev/ttyUSB4
+		nfspath=$HOME/targetfs/coresdk70
 		switch=2
 	elif [ "$board" = "am65xx-evm" ]; then
-		uart_dev=/dev/ttyUSB12
+		uart_dev=/dev/ttyUSB8
+		nfspath=$HOME/targetfs/coresdk70
 		switch=3
 	else
 		echo "Invalid board"
@@ -124,6 +128,24 @@ bootmode=$1
 	fi
 }
 
+# Send commands to do a tftp boot
+tftp_boot() {
+ipaddr=$1
+nfspath=$2
+
+	for i in `seq 1 30`; do
+		echo "" > $uart_dev
+		sleep 0.1
+	done
+
+	cat >>$uart_dev << EOF
+run findfdt
+setenv bootargs 'console=\$console \$optargs root=/dev/nfs rw  nfsroot=$ipaddr:$nfspath,nolock,v3,tcp,rsize=4096,wsize=4096 ip=dhcp sysrq_always_enabled loglevel=8 earlycon=ns16550a,mmio32,0x02800000 '
+setenv bootcmd 'run args_all; setenv autoload no; dhcp; setenv serverip $ipaddr; run findfdt; tftp \${loadaddr} Image; tftp \${fdtaddr} \${name_fdt}; fdt address \${fdtaddr}; fdt resize 0x100000; booti \${loadaddr} - \${fdtaddr}'
+boot
+EOF
+}
+
 # Main script starts from here
 if [ `whoami` != "root" ]; then
 	echo "This script should be called with sudo!!"
@@ -144,6 +166,11 @@ case $1 in
 		;;
 	--am6|--am654|--am65x-evm|--am654-idk|--am65xx-evm)
 		init "am65xx-evm"
+		shift
+		;;
+	-t|--tftp)
+		ipaddr=$2
+		shift
 		shift
 		;;
 	-m|--mount)
@@ -169,6 +196,7 @@ esac
 done
 
 init $board
+
 if [ ! -z $bootmode ]; then
 	# Reboot the board in specified bootmode
 	toggle_power $switch
@@ -179,6 +207,11 @@ elif [ ! -z $mdev ]; then
 	toggle_power $switch
 	boot_till_uboot >/dev/null
 	try_mount $uart_dev $mdev
+elif [ ! -z $ipaddr ]; then
+	# Reboot the board and mount the specified device
+	toggle_power $switch
+	boot_till_uboot >/dev/null
+	tftp_boot $ipaddr $nfspath
 else
 	echo "Invalid usage!!"
 	usage
