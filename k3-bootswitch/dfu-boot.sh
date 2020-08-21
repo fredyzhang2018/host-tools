@@ -21,29 +21,31 @@ usage()
 	echo "    ADDRESS: specify the IP address for tftp/NFS boot"
 }
 
+read_config() {
+configfile=$HOME/.config/k3bootswitch.conf
+section=$1
+param=$2
+
+	python3 -c "
+import configparser;
+import sys;
+config = configparser.ConfigParser();
+config.read('$configfile');
+print (config.get('$section','$param'));
+"
+}
+
 init() {
 board=$1
-	# Customize this as required
-	if [ "$board" = "j721e-evm" ]; then
-		uart_dev=/dev/ttyUSB12
-		nfspath=$HOME/targetfs/coresdk70
-		switch=0
-	elif [ "$board" = "j7200-evm" ]; then
-		uart_dev=/dev/ttyUSB4
-		nfspath=$HOME/targetfs/coresdk70
-		switch=2
-	elif [ "$board" = "am65xx-evm" ]; then
-		uart_dev=/dev/ttyUSB8
-		nfspath=$HOME/targetfs/coresdk70
-		switch=3
-	else
-		echo "Invalid board"
-		usage
-		exit 1
-	fi
 
 	prebuilt=$SCRIPTPATH/bin/$board
 	boot_select=$SCRIPTPATH/boot_select/$board
+
+	uart_dev=`read_config $board uart_dev`
+	nfspath=`read_config $board nfspath`
+	switch=`read_config $board switch`
+
+	ipaddr=`read_config core ipaddr`
 }
 
 toggle_power()
