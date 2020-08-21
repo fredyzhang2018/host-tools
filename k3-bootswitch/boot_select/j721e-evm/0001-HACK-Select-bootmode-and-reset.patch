@@ -1,18 +1,18 @@
-From 1460609e82f980b58163bcb04968ba414fa47e57 Mon Sep 17 00:00:00 2001
+From 68d5f3892b26b02d2df03b3f2acb939d70532eb8 Mon Sep 17 00:00:00 2001
 From: Nikhil Devshatwar <nikhil.nd@ti.com>
 Date: Tue, 7 Apr 2020 18:33:36 +0530
 Subject: [PATCH] HACK: Select bootmode and reset
 
 Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
 ---
- arch/arm/mach-k3/j721e_init.c | 28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+ arch/arm/mach-k3/j721e_init.c | 30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
 diff --git a/arch/arm/mach-k3/j721e_init.c b/arch/arm/mach-k3/j721e_init.c
-index b4ceb3b57f..d3865ad535 100644
+index 1e90c02ee5..8d910ebd6c 100644
 --- a/arch/arm/mach-k3/j721e_init.c
 +++ b/arch/arm/mach-k3/j721e_init.c
-@@ -268,6 +268,34 @@ void board_init_f(ulong dummy)
+@@ -261,6 +261,36 @@ void board_init_f(ulong dummy)
  	/* Make all control module registers accessible */
  	ctrl_mmr_unlock();
  
@@ -28,6 +28,8 @@ index b4ceb3b57f..d3865ad535 100644
 +	*((volatile uint8_t *)0x00100030) = 0x41;
 +	*((volatile uint8_t *)0x43000030) = 0x00;
 +#elif BOOTMODE == EMMC
++	*((volatile uint8_t *)0x00100030) = 0x01;
++	*((volatile uint8_t *)0x43000030) = 0x08;
 +#elif BOOTMODE == OSPI
 +	/* Set the boot mode to OSPI */
 +	*((volatile uint8_t *)0x00100030) = 0x00;
