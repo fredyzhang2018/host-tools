@@ -142,7 +142,7 @@ nfspath=$2
 
 	cat >>$uart_dev << EOF
 run findfdt
-setenv bootargs 'console=\$console \$optargs root=/dev/nfs rw  nfsroot=$ipaddr:$nfspath,nolock,v3,tcp,rsize=4096,wsize=4096 ip=dhcp sysrq_always_enabled loglevel=8 earlycon=ns16550a,mmio32,0x02800000 '
+setenv bootargs console=\$console \$optargs root=/dev/nfs rw  nfsroot=$ipaddr:$nfspath,nolock,v3,tcp,rsize=4096,wsize=4096 ip=dhcp sysrq_always_enabled loglevel=8 earlycon=ns16550a,mmio32,0x02800000
 setenv bootcmd 'run args_all; setenv autoload no; dhcp; setenv serverip $ipaddr; run findfdt; tftp \${loadaddr} Image; tftp \${fdtaddr} \${name_fdt}; fdt address \${fdtaddr}; fdt resize 0x100000; booti \${loadaddr} - \${fdtaddr}'
 boot
 EOF
