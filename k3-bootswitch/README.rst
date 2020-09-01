@@ -21,7 +21,17 @@ Switch settings for DFU boot mode
 ---------------------------------
 
 * j721e-evm settings  => SW8 = 1000 0000      SW9 = 0010 0000      SW3 = 0101 00 1010
+* j7200-evm settings  => SW8 = 1000 0000      SW9 = 0010 0000      SW3 = 0101 00 1010
 * am65xx-evm settings => SW2 = 0000 0000 00   SW3 = 0001 0000 00   SW4 = 11
+
+Phidget setup
+-------------
+
+This script uses phidget to control power for restarting the boards.
+Since everyone has different configuration, the script parses the data from a
+config file. You can copy the template as follows and then customize as required.
+
+    cp k3bootswitch.conf ~/HOME/.config/
 
 Usage
 -----
