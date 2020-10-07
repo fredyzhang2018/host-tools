@@ -48,45 +48,6 @@ Usage
 * To mount the SD card from am65xx-evm board to the Linux PC, run following
     ``sudo ./dfu-boot.sh --am65xx-evm --mount 1``
 
-
-Advantages
-----------
-
-* Allows to remotely control the board by eliminating need to physically
-  change the switch settings
-* Can be used for regular development flow, where it removes the need
-  to physically plug out the SD card for updating images.
-* Makes it very easy to partition, format and update contents of the
-  eMMC device.
-* Can be used for factory flashing of the OSPI/eMMC images using
-  automated scripts
-
-How it works
-------------
-The DFU bootmode allows to pass any custom bootloader to the board. By keeping
-the switch settings in DFU mode, board always waits for the Linux PC to send
-a bootloader. In Keystone3 SoC, the BOOTMODE and MCU_BOOTMODE registers reflect the
-values of the boot switches at the cold boot. This register can be modified and
-the values written are retained through the warm reset. These two features
-allows to set the bootmode from the command line PC tool.
-
-In the **boot_select** directory of this tool, there are many files which act
-as the custom bootloader every time the board boots with DFU-boot mode.
-The custom bootloader does only two important things; First it overwrites the
-BOOTMODE and MCU_BOOTMODE registers to change to the desired boot mode and then
-it issues a soft reset to the SoC causing it to boot the second time with new
-bootmode.
-
-All of this happens very fast when run from a script that it does not add
-considerable amount of time for developer bootflow.
-
-The mount of SD card or eMMC is achieved using the u-boot's
-UMS (USB Mass Storage) feature. In this case, the tool sends a real R5 u-boot as
-bootloader, System firmware ITB, A72 u-boot images and then runs the ums command.
-Note that all the binaries are being sent from the Linux PC, so there is
-absolutely no dependency on the contents of SD card.
-
-
 Customization
 -------------
 
@@ -99,8 +60,6 @@ differnent mechanism, update the **dfu-boot.sh** script with following:
   controls the power via phidget
 * If you have a different mechanism to power the board, write your own implementation
   for **toggle_power** function instead of the default phidget commands
-
-
 
 Limitatinos
 -----------
