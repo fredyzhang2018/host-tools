@@ -52,7 +52,7 @@ toggle_power()
 {
 switch=$1
 	echo "    >>>> Toggling phidget..."
-	(phidget-switch $switch 0 && sleep 0.5 && phidget-switch $switch 1 && sleep 0.1) >/dev/null 2>&1
+	(phidget-switch $switch 0 && sleep 1 && phidget-switch $switch 1 && sleep 0.1) >/dev/null 2>&1
 	if [ $? -ne 0 ]; then
 		echo -n "ERROR: phidget not found, Reboot manually and press enter.. "
 		read DUMMY
@@ -100,7 +100,7 @@ mdev=$2
 		if [ -b $UMS_part1 ] && [ -b $UMS_part2 ]; then
 			mkdir -p /media/$user/UMS-boot
 			mkdir -p /media/$user/UMS-rootfs
-			mount $UMS_part1 /media/$user/UMS-boot
+			mount $UMS_part1 /media/$user/UMS-boot -o uid=`id | cut -d'(' -f1  | cut -d'=' -f2`,gid=`id | cut -d'(' -f2  | cut -d'=' -f2`
 			mount $UMS_part2 /media/$user/UMS-rootfs
 			echo "    >>>> Mounted partions at /media/$user/UMS-boot and /media/$user/UMS-rootfs"
 			return
@@ -137,7 +137,7 @@ nfspath=$2
 
 	for i in `seq 1 30`; do
 		echo "" > $uart_dev
-		sleep 0.1
+		sleep 0.3
 	done
 
 	cat >>$uart_dev << EOF
