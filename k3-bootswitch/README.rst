@@ -23,6 +23,7 @@ Switch settings for DFU boot mode
 * j721e-evm settings  => SW8 = 1000 0000      SW9 = 0010 0000      SW3 = 0101 00 1010
 * j7200-evm settings  => SW8 = 1000 0000      SW9 = 0010 0000      SW3 = 0101 00 1010
 * am65xx-evm settings => SW2 = 0000 0000 00   SW3 = 0001 0000 00   SW4 = 11
+* am64xx-evm settings => SW2 = 1100 1010      SW3 = 0011 0000
 
 Phidget setup
 -------------
