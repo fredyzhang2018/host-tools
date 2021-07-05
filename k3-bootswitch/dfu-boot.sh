@@ -82,8 +82,11 @@ msg=$1
 boot_till_uboot() {
 	wait_till_ready "for tiboot3.bin"
 	2>&1 dfu-util -R -a bootloader -D $prebuilt/tiboot3.bin
-	wait_till_ready "for sysfw.itb"
-	2>&1 dfu-util -R -a sysfw.itb -D $prebuilt/sysfw.itb
+	# Skip the sysfe.itb where combined boot flow is used
+	if [ $board != "am64xx-evm" ]; then
+		wait_till_ready "for sysfw.itb"
+		2>&1 dfu-util -R -a sysfw.itb -D $prebuilt/sysfw.itb
+	fi
 	wait_till_ready "for tispl.bin"
 	2>&1 dfu-util -R -a tispl.bin -D $prebuilt/tispl.bin
 	wait_till_ready "for u-boot.img"
@@ -166,8 +169,12 @@ case $1 in
 		init "j7200-evm"
 		shift
 		;;
-	--am6|--am654|--am65x-evm|--am654-idk|--am65xx-evm)
+	--am65|--am65x-evm|--am654-idk|--am65xx-evm)
 		init "am65xx-evm"
+		shift
+		;;
+	--am64|--am64xx-evm)
+		init "am64xx-evm"
 		shift
 		;;
 	-t|--tftp)
