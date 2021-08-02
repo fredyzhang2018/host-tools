@@ -1,0 +1,51 @@
+From 9373af07c3e35f40944c03755c1f4d22cb4f49aa Mon Sep 17 00:00:00 2001
+From: Nikhil Devshatwar <nikhil.nd@ti.com>
+Date: Mon, 5 Jul 2021 19:26:51 +0530
+Subject: [PATCH] HACK: Select bootmode and reset
+
+Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
+---
+ arch/arm/mach-k3/am642_init.c | 27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
+
+diff --git a/arch/arm/mach-k3/am642_init.c b/arch/arm/mach-k3/am642_init.c
+index 3871fe0002..0a559f59fa 100644
+--- a/arch/arm/mach-k3/am642_init.c
++++ b/arch/arm/mach-k3/am642_init.c
+@@ -158,6 +158,33 @@ void board_init_f(ulong dummy)
+ 
+ 	ctrl_mmr_unlock();
+ 
++#define MMC    0xdead0000
++#define EMMC   0xdead0001
++#define OSPI   0xdead0002
++#define UART   0xdead0003
++#define NOBOOT 0xdead0004
++#define BOOTMODE NOBOOT
++
++#if BOOTMODE == MMC
++       /* Set the boot mode to MMC/SD */
++       *((volatile uint32_t *)0x43000030) = 0x0c53;
++#elif BOOTMODE == EMMC
++       /* Set the boot mode to EMMC */
++       *((volatile uint32_t *)0x43000030) = 0x0c53;
++#elif BOOTMODE == OSPI
++       /* Set the boot mode to OSPI */
++       *((volatile uint32_t *)0x43000030) = 0x0273;
++#elif BOOTMODE == UART
++       /* Set the boot mode to UART */
++       *((volatile uint32_t *)0x43000030) = 0x0d3b;
++#elif BOOTMODE == NOBOOT
++       /* Set the boot mode to UART */
++       *((volatile uint32_t *)0x43000030) = 0x0c53;
++#endif
++       /* Issue a system reset */
++       *((volatile uint32_t *)0x4301817C) = 0x0;
++
++
+ 	/* Init DM early */
+ 	spl_early_init();
+ 
+-- 
+2.17.1
+
