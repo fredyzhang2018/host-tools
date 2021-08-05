@@ -113,6 +113,18 @@ mdev=$2
 	exit 1
 }
 
+change_bootmode_slow() {
+uart_dev=$1
+        sleep 5
+        for i in `seq 1 100`; do
+                echo "mw.w 0x43000030 0x0d3b" > $uart_dev
+                sleep 0.1
+                echo "reset" > $uart_dev
+                sleep 0.1
+        done
+}
+
+
 # Send a boot_select binary
 change_bootmode() {
 bootmode=$1
@@ -209,8 +221,12 @@ init $board
 if [ ! -z $bootmode ]; then
 	# Reboot the board in specified bootmode
 	toggle_power $switch
-	change_bootmode $bootmode
-
+	if [ $board == "am64x-evm" ] && [ $bootmode == "uart" ]; then
+		boot_till_uboot >/dev/null
+		change_bootmode_slow $uart_dev
+	else
+		change_bootmode $bootmode
+	fi
 elif [ ! -z $mdev ]; then
 	# Reboot the board and mount the specified device
 	toggle_power $switch
