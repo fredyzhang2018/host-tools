@@ -3,8 +3,8 @@
 # Author: Nikhil Devshatwar
 
 # No need to change anything below this line
-UMS_part1=/dev/disk/by-id/usb-Linux_UMS_disk*part1
-UMS_part2=/dev/disk/by-id/usb-Linux_UMS_disk*part2
+UMS_part1=/dev/disk/by-id/usb-Linux_BOOT*part1
+UMS_part2=/dev/disk/by-id/usb-Linux_rootfs*part2
 SCRIPT=$(readlink -f $0)
 SCRIPTPATH=`dirname $SCRIPT`
 user=`logname`
@@ -52,7 +52,7 @@ toggle_power()
 {
 switch=$1
 	echo "    >>>> Toggling phidget..."
-	(phidget-switch $switch 0 && sleep 1 && phidget-switch $switch 1 && sleep 0.1) >/dev/null 2>&1
+    (usbrelay HURTM_1=0 HURTM_2=0 && sleep 0.5 && usbrelay HURTM_1=1 HURTM_2=1 && sleep 0.1) >/dev/null 2>&1
 	if [ $? -ne 0 ]; then
 		echo -n "ERROR: phidget not found, Reboot manually and press enter.. "
 		read DUMMY
